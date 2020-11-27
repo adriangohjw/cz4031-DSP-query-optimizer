@@ -12,3 +12,6 @@ In Windows CMD, ensure you are in the folder of your repository
 All required packages should have been installed!
 
 `venv\Scripts\activate` is also the <b>command to enter your virtual environment</b> whenever you want to run the application on CMD
+
+Once the requirements have been added, you can run the streamlit app by
+`streamlit run app.py`
