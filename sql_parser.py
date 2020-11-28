@@ -100,3 +100,7 @@ class SQLParser:
             elif isinstance(item, Identifier):
                 value = item.value.replace('"', '').lower()
                 yield value
+
+
+def format(sql):
+    return sqlparse.format(sql, reindent=True, keyword_case='upper')
