@@ -10,6 +10,7 @@ from column_selector import ColumnSelector
 class SQLParser:
     def __init__(self, query):
         self.query = query
+        self.tokens = sqlparse.parse(self.query)[0].tokens
         self.tables = self.__extract_tables()
         self.selectable_columns = self.__get_selectable_columns()
         self.splitted_query = self.__splitted()
@@ -24,9 +25,31 @@ class SQLParser:
 
     
     def __get_selectable_columns(self):
+        columns_to_check = { 'unknown': [] }
+        for table in self.tables:
+            columns_to_check[table] = []
+        
+        # remove columns if they are in 'where' statement
+        for token in self.tokens:
+            if 'where' in token.value.lower():
+                for word in token.value.split(' '):
+                    if '.' in word:
+                        word_splitted = word.split('.')
+                        table_name = word_splitted[0]
+                        column_name = word_splitted[1]
+                        if table_name in columns_to_check:
+                            columns_to_check[table_name].append(column_name)
+                        else:
+                            columns_to_check['unknown'].append(column_name)    
+                    else:
+                        columns_to_check['unknown'].append(word)
+
         selectable_columns = {}
         for table in self.tables:
-            selectable_columns[table] = ColumnSelector(table).get_attributes()
+            selectable_columns_for_table = ColumnSelector(table).get_attributes()
+            selectable_columns_for_table = [x for x in selectable_columns_for_table if x not in columns_to_check[table]]
+            selectable_columns_for_table = [x for x in selectable_columns_for_table if x not in columns_to_check['unknown']]
+            selectable_columns[table] = selectable_columns_for_table
         return selectable_columns
 
 
