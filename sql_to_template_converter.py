@@ -37,9 +37,13 @@ def sql_to_template(raw_sql):
                         token_value = __nested_sql_token_to_template(token_value)
 
                     if token_index == len(parsed_sql.tokens) - 1:
-                        processed_query_line = token_value.replace(";", " and {table_name}.{column_name} < {{}};".format(table_name=table_name, column_name=column_name))
+                        if ';' in token.value:
+                            processed_query_line = token_value.replace(";", " and {table_name}.{column_name} < {{}};".format(table_name=table_name, column_name=column_name))
+                        else:
+                            processed_query_line = str(token_value) + " and {table_name}.{column_name} < {{}} ".format(table_name=table_name, column_name=column_name)
                     else:
                         processed_query_line = str(token_value) + " and {table_name}.{column_name} < {{}} ".format(table_name=table_name, column_name=column_name)
+                    print(processed_query_line)
                     reconstructed_query.append(processed_query_line)
                 
             elif is_table:
