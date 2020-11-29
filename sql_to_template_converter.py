@@ -22,8 +22,10 @@ def sql_to_template(raw_sql):
             if 'where' in str(token.value).lower():
                 table_names = parsed_sql.tokens[token_index - 2].value.replace(' ','').split(',')
                 table_name = table_names[0]
+                print(table_names)
                 
                 if len(parsed_sql.selectable_columns[table_name]) != 0: # only add PSP if there's selectable
+                    print(parsed_sql.selectable_columns[table_name])
                     column_name = parsed_sql.selectable_columns[table_name][0] # TODO: update hard coded logic on which column to select as PSP
 
                     token_value = token.value
@@ -31,9 +33,9 @@ def sql_to_template(raw_sql):
                         token_value = __nested_sql_token_to_template(token_value)
 
                     if token_index == len(parsed_sql.tokens) - 1:
-                        processed_query_line = token_value.replace(";", " and {table_name}.{column_name} :varies;".format(table_name=table_name, column_name=column_name))
+                        processed_query_line = token_value.replace(";", " and {table_name}.{column_name} < {{}};".format(table_name=table_name, column_name=column_name))
                     else:
-                        processed_query_line = str(token_value) + " and {table_name}.{column_name} :varies ".format(table_name=table_name, column_name=column_name)
+                        processed_query_line = str(token_value) + " and {table_name}.{column_name} < {{}} ".format(table_name=table_name, column_name=column_name)
                     reconstructed_query.append(processed_query_line)
                 
             elif is_table:
@@ -44,7 +46,7 @@ def sql_to_template(raw_sql):
 
                 if len(parsed_sql.selectable_columns[table_name]) != 0: # only add PSP if there's selectable
                     column_name = parsed_sql.selectable_columns[table_name][0] # TODO: update hard coded logic on which column to select as PSP
-                    psp_statement = " where {table_name}.{column_name} :varies ".format(table_name=table_name, column_name=column_name)
+                    psp_statement = " where {table_name}.{column_name} < {{}} ".format(table_name=table_name, column_name=column_name)
                     try:
                         has_where = True if 'where' in str(parsed_sql.tokens[token_index + 2].value.lower()) else False
                         if not has_where:
