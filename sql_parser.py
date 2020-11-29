@@ -1,5 +1,6 @@
 import itertools
 import sqlparse
+import re
 
 from sqlparse.sql import IdentifierList, Identifier
 from sqlparse.tokens import Keyword, DML
@@ -60,7 +61,13 @@ class SQLParser:
             if statement.get_type() != 'UNKNOWN':
                 stream = self.__extract_from_part(statement)
                 extracted_tables.append(set(list(self.__extract_table_identifiers(stream))))
-        return list(itertools.chain(*extracted_tables))
+
+        pre_screened_tables = list(itertools.chain(*extracted_tables))
+        screened_tables = []
+        for table in pre_screened_tables:
+            if re.compile('[@_!#$%^&*()<>?/\|}{~:]').search(table) is None:
+                screened_tables.append(table)
+        return screened_tables
 
 
     def __is_subselect(self, parsed):
