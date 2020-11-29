@@ -36,15 +36,18 @@ def sql_to_template(raw_sql):
                     if 'select' in token.value.lower() and str(token.ttype) != "Token.Keyword.DML":
                         token_value = __nested_sql_token_to_template(token_value)
 
-                    if token_index == len(parsed_sql.tokens) - 1:
-                        if ';' in token.value:
-                            processed_query_line = token_value.replace(";", " and {table_name}.{column_name} < {{}};".format(table_name=table_name, column_name=column_name))
+                    if '{' not in token_value and '}' not in token_value: # check if it's recursive
+                        if token_index == len(parsed_sql.tokens) - 1:
+                            if ';' in token.value:
+                                processed_query_line = token_value.replace(";", " and {table_name}.{column_name} < {{}};".format(table_name=table_name, column_name=column_name))
+                            else:
+                                processed_query_line = str(token_value) + " and {table_name}.{column_name} < {{}} ".format(table_name=table_name, column_name=column_name)
                         else:
                             processed_query_line = str(token_value) + " and {table_name}.{column_name} < {{}} ".format(table_name=table_name, column_name=column_name)
+
+                        reconstructed_query.append(processed_query_line)
                     else:
-                        processed_query_line = str(token_value) + " and {table_name}.{column_name} < {{}} ".format(table_name=table_name, column_name=column_name)
-                    print(processed_query_line)
-                    reconstructed_query.append(processed_query_line)
+                        reconstructed_query.append(token_value)
                 
             elif is_table:
                 reconstructed_query.append(token.value)
