@@ -20,7 +20,13 @@ def sql_to_template(raw_sql):
                     break
 
             if 'where' in str(token.value).lower():
-                table_names = parsed_sql.tokens[token_index - 2].value.replace(' ','').split(',')
+                backward_count_to_from = 1
+                is_tables_found = False
+                while not is_tables_found:
+                    if 'from' in parsed_sql.tokens[token_index - backward_count_to_from].value.lower():
+                        break
+                    backward_count_to_from += 1
+                table_names = parsed_sql.tokens[token_index - (backward_count_to_from - 2)].value.replace(' ','').split(',')
                 table_name = table_names[0]
                 
                 if len(parsed_sql.selectable_columns[table_name]) != 0: # only add PSP if there's selectable
