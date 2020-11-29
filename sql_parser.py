@@ -9,7 +9,7 @@ from column_selector import ColumnSelector
 
 class SQLParser:
     def __init__(self, query):
-        self.query = query
+        self.query = self.__clean_query(query)
         self.tokens = sqlparse.parse(self.query)[0].tokens
         self.tables = self.__extract_tables()
         self.selectable_columns = self.__get_selectable_columns()
@@ -70,6 +70,18 @@ class SQLParser:
             if item.ttype is DML and item.value.upper() == 'SELECT':
                 return True
         return False
+
+
+    def __clean_query(self, raw_sql):
+        statements = sqlparse.split(raw_sql)
+        statement = statements[0]
+        sql_parsed = sqlparse.format(statement, reindent=True, keyword_case='upper')
+        sql_parsed_split = sql_parsed.splitlines()
+
+        cleaned_query = ''
+        for item in sql_parsed_split:
+            cleaned_query += ' {}'.format(item.strip())
+        return cleaned_query
 
 
     def __extract_from_part(self, parsed):
