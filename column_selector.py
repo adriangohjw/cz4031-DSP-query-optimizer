@@ -1,4 +1,5 @@
 import database
+import os.path
 
 class ColumnSelector:
     def __init__(self, table_name):
@@ -7,9 +8,13 @@ class ColumnSelector:
 
 
     def get_attributes(self):
-        self.__filter_datatype()
-        self.__filter_permissible_string()
-        self.__parse_column_pairs()
+        if os.path.isfile('temp/{}.txt'.format(self.table_name)):
+            self.attributes = self.__read_attributes_from_file()
+        else:
+            self.__filter_datatype()
+            self.__filter_permissible_string()
+            self.__parse_column_pairs()
+            self.__store_attributes_in_file()
         return self.attributes
 
 
@@ -72,6 +77,23 @@ class ColumnSelector:
 
     def __parse_column_pairs(self):
         self.attributes = [column['column_name'] for column in self.attributes]
+
+
+    def __read_attributes_from_file(self):
+        attributes = []
+        with open('temp/{}.txt'.format(self.table_name), 'r') as filehandle:
+            for line in filehandle:
+                currentPlace = line[:-1] # remove linebreak which is the last character of the string
+                attributes.append(currentPlace)
+        return attributes
+
+
+    def __store_attributes_in_file(self):
+        if not os.path.exists('temp'):
+            os.makedirs('temp')
+        with open('temp/{}.txt'.format(self.table_name), 'w') as filehandle:
+            for item in self.attributes:
+                filehandle.write('{}\n'.format(item))
 
 
 # get usable attributes for a given table using the following code
