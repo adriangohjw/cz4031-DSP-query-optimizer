@@ -22,10 +22,8 @@ def sql_to_template(raw_sql):
             if 'where' in str(token.value).lower():
                 table_names = parsed_sql.tokens[token_index - 2].value.replace(' ','').split(',')
                 table_name = table_names[0]
-                print(table_names)
                 
                 if len(parsed_sql.selectable_columns[table_name]) != 0: # only add PSP if there's selectable
-                    print(parsed_sql.selectable_columns[table_name])
                     column_name = parsed_sql.selectable_columns[table_name][0] # TODO: update hard coded logic on which column to select as PSP
 
                     token_value = token.value
