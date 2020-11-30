@@ -30,22 +30,19 @@ def get_difference(json_object_A, json_object_B):
 
 @st.cache  # 👈 This function will be cached
 def fetch_qep_from_backend(query):
-    qep_object = qep_generator.generateQEPs(input_query1)
+    qep_object = qep_generator.generateQEPs(input_query)
 
     alternative_qeps = qep_object.get_alternate_qeps()
     optimal_qep_dbms = qep_object.get_dbms_qep()
 
     if optimal_qep_dbms in alternative_qeps:
         alternative_qeps.remove(optimal_qep_dbms)
-
-    # Do something really slow in here!
-
     return alternative_qeps, optimal_qep_dbms
 
-st.title('PostgreSQL Query Optimizer : Fake Picasso')
 
+st.title('PostgreSQL Query Optimizer')
 
-input_query1 = st.text_area('Enter your query 1 here.', height=400)
+input_query = st.text_area('Enter your query to optimize here.', height=400)
 
 # alternative_qeps = None
 # optimal_qep_dbms = None
@@ -53,23 +50,25 @@ input_query1 = st.text_area('Enter your query 1 here.', height=400)
 # Convert input query to explain analyse
 # if st.button('Submit'):
 with st.spinner('Hang on while we optimize your query to go brrr....'):
-    alternative_qeps, optimal_qep_dbms = fetch_qep_from_backend(input_query1)
+    alternative_qeps, optimal_qep_dbms = fetch_qep_from_backend(input_query)
 
     st.success("Alright! We are ready to speed up your query! ")
 
     st.write("For the query you have given us, we have been able to determine {} alternative plans as well as the most optimal one as\
             chosen by your DBMS".format(len(alternative_qeps)))
 
-for i in range(len(alternative_qeps)-2):
-    print(alternative_qeps[i] == alternative_qeps[i+1])
+idx = st.number_input('Select the index of the QEP you want to compare your most optimal plan with', 0, len(alternative_qeps),1)
 
-idx = st.number_input('Select the index of the QEP you want to compare your most optimal plan with', 0, len(alternative_qeps) - 1, 1)
+if(len(alternative_qeps) ==  1):
+    idx = 0
+
 if st.button('Analyse QEPs'):
-
     query_result_base = optimal_qep_dbms
-    query_result_modified = alternative_qeps[idx]
 
-    print(idx)
+    if(len(alternative_qeps == 1)):
+        query_result_modified = alternative_qeps
+    else:
+        query_result_modified = alternative_qeps[0]
 
     query_result_base_obj = json.loads(json.dumps(query_result_base[0][0]))
     query_result_modified_obj = json.loads(json.dumps(query_result_modified[0][0]))

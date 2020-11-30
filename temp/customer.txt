@@ -1,0 +1,3 @@
+c_custkey
+c_phone
+c_mktsegment
