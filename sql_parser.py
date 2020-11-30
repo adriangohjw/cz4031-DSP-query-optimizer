@@ -6,6 +6,7 @@ from sqlparse.sql import IdentifierList, Identifier
 from sqlparse.tokens import Keyword, DML
 
 from column_selector import ColumnSelector
+from statistical_summaries import get_statiscal_summaries
 
 
 class SQLParser:
@@ -45,12 +46,21 @@ class SQLParser:
                     else:
                         columns_to_check['unknown'].append(word)
 
-        selectable_columns = {}
-        for table in self.tables:
+        all_relevant_tables = [item for item in get_statiscal_summaries() if item["table_name"] in self.tables]
+        tables_sorted = [table['table_name'] for table in all_relevant_tables]
+
+        selectable_columns = []
+        for table in tables_sorted:
+            columns_from_summary = [item for item in all_relevant_tables if item["table_name"] == table][0]['sorted_columns']
             selectable_columns_for_table = ColumnSelector(table).get_attributes()
+            selectable_columns_for_table = [x for x in columns_from_summary if x not in selectable_columns_for_table]
             selectable_columns_for_table = [x for x in selectable_columns_for_table if x not in columns_to_check[table]]
             selectable_columns_for_table = [x for x in selectable_columns_for_table if x not in columns_to_check['unknown']]
-            selectable_columns[table] = selectable_columns_for_table
+            selectable_columns.append({
+                'table_name': table,
+                'columns': selectable_columns_for_table
+            })
+
         return selectable_columns
 
 

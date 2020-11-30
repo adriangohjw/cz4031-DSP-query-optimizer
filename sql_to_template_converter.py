@@ -20,20 +20,14 @@ def sql_to_template(raw_sql):
                     break
 
             if 'where' in str(token.value).lower():
-                backward_count_to_from = 1
-                is_tables_found = False
-                while not is_tables_found:
-                    if 'from' == parsed_sql.tokens[token_index - backward_count_to_from].value.lower():
-                        break
-                    backward_count_to_from += 1
-                table_names = parsed_sql.tokens[token_index - (backward_count_to_from - 2)].value.replace(' ','').split(',')
-                table_name = table_names[0]
-
                 where_contains_parenthetic_stmt, query = __get_template_from_nested_token(token)
                 
-                if not where_contains_parenthetic_stmt and table_name in list(parsed_sql.selectable_columns.keys()):
-                    if len(parsed_sql.selectable_columns[table_name]) != 0: # only add PSP if there's selectable
-                        column_name = parsed_sql.selectable_columns[table_name][-1]
+                selectable_tables = [table['table_name'] for table in parsed_sql.selectable_columns]
+                table_name = selectable_tables[0]
+                if not where_contains_parenthetic_stmt and table_name in selectable_tables:
+                    selectable_columns = next(table for table in parsed_sql.selectable_columns if table["table_name"] == table_name)['columns']
+                    if len(selectable_columns) != 0: # only add PSP if there's selectable
+                        column_name = selectable_columns[0]
 
                         token_value = token.value
                         if 'select' in token.value.lower() and str(token.ttype) != "Token.Keyword.DML":
@@ -75,11 +69,11 @@ def sql_to_template(raw_sql):
                     reconstructed_query.append(token_next_keyword.value)
                     token_index += 1   
                 
-                table_names = token.value.replace(' ','').split(',')
-                table_name = table_names[0]
-
-                if len(parsed_sql.selectable_columns[table_name]) != 0: # only add PSP if there's selectable
-                    column_name = parsed_sql.selectable_columns[table_name][-1]
+                selectable_tables = [table['table_name'] for table in parsed_sql.selectable_columns]
+                table_name = selectable_tables[0]
+                selectable_columns = next(table for table in parsed_sql.selectable_columns if table["table_name"] == table_name)['columns']
+                if len(selectable_columns) != 0: # only add PSP if there's selectable
+                    column_name = selectable_columns[0]
                     psp_statement = " where {table_name}.{column_name} < {{}} ".format(table_name=table_name, column_name=column_name)
                     try:
                         if has_where:
