@@ -29,13 +29,7 @@ def sql_to_template(raw_sql):
                 table_names = parsed_sql.tokens[token_index - (backward_count_to_from - 2)].value.replace(' ','').split(',')
                 table_name = table_names[0]
 
-                where_contains_parenthetic_stmt = False
-                query = token.value
-                for item in list(__parenthetic_contents(token.value)):
-                    if 'select' in item[1].lower():
-                        where_contains_parenthetic_stmt = True
-                        x = sql_to_template(item[1])
-                        query = query.replace(item[1], x)
+                where_contains_parenthetic_stmt, query = __get_template_from_nested_token(token)
                 
                 if not where_contains_parenthetic_stmt and table_name in list(parsed_sql.selectable_columns.keys()):
                     if len(parsed_sql.selectable_columns[table_name]) != 0: # only add PSP if there's selectable
@@ -100,13 +94,7 @@ def sql_to_template(raw_sql):
                         reconstructed_query.append(psp_statement)
 
             else:
-                contains_parenthetic_stmt = False
-                query = token.value
-                for item in list(__parenthetic_contents(token.value)):
-                    if 'select' in item[1].lower():
-                        contains_parenthetic_stmt = True
-                        x = sql_to_template(item[1])
-                        query = query.replace(item[1], x)
+                contains_parenthetic_stmt, query = __get_template_from_nested_token(token)
                 if contains_parenthetic_stmt:
                     reconstructed_query.append(query)
                 else:
@@ -119,6 +107,17 @@ def sql_to_template(raw_sql):
 
     reconstructed_query = ''.join(map(str, reconstructed_query))
     return reconstructed_query
+
+
+def __get_template_from_nested_token(nested_token):
+    contains_parenthetic_stmt = False
+    query = nested_token.value
+    for item in list(__parenthetic_contents(nested_token.value)):
+        if 'select' in item[1].lower():
+            contains_parenthetic_stmt = True
+            x = sql_to_template(item[1])
+            query = query.replace(item[1], x)
+    return contains_parenthetic_stmt, query
 
 
 def __nested_sql_token_to_template(nested_sql):
