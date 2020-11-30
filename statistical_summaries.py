@@ -11,7 +11,7 @@ def __store_summaries_in_file(summaries_json):
 
 
 def __read_summaries_from_file():
-    if not os.path.exists('temp') and not os.path.isfile('temp/summaries.txt'):
+    if not os.path.exists('temp') or not os.path.isfile('temp/summaries.txt'):
         print("No summaries file to read from")
         return None
     else:
