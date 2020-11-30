@@ -38,3 +38,7 @@ Run the command `python setup.py` in the console. This will start the generation
 
 Once the requirements have been added, you can run the streamlit app by
 `streamlit run app.py`
+
+## Docker
+Alternatively you can build and run a docker image from the Dockerfile given in this repo. 
+For more information on hwo to build and run images locally, you can follow this [link](https://docs.docker.com/get-started/part2/).
