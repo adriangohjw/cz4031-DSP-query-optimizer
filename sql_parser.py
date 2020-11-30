@@ -66,7 +66,9 @@ class SQLParser:
         screened_tables = []
         for table in pre_screened_tables:
             if re.compile('[@_!#$%^&*()<>?/\|}{~:]').search(table) is None:
-                screened_tables.append(table)
+                tables = table.split(' ')
+                screened_tables.append(tables[0])
+        screened_tables = list(set(screened_tables))
         return screened_tables
 
 
