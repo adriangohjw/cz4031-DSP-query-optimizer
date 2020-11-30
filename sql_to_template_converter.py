@@ -63,6 +63,24 @@ def sql_to_template(raw_sql):
             elif is_table:
                 reconstructed_query.append(token.value)
 
+                is_next_nonjoin_keyword_found, has_where = False, False
+                while not is_next_nonjoin_keyword_found:
+                    if token_index + 1 == len(parsed_sql.tokens):
+                        break
+                    token_next_keyword = parsed_sql.tokens[token_index + 1]
+                    if str(token_next_keyword.ttype) == "Token.Keyword":
+                        if any(keyword in token_next_keyword.value.lower() for keyword in ['join', 'on','and']):
+                            pass
+                        else:
+                            is_next_nonjoin_keyword_found = True
+                            break
+                    else:
+                        if 'where' in token_next_keyword.value.lower():
+                            has_where = True
+                            break
+                    reconstructed_query.append(token_next_keyword.value)
+                    token_index += 1   
+                
                 table_names = token.value.replace(' ','').split(',')
                 table_name = table_names[0]
 
@@ -70,14 +88,29 @@ def sql_to_template(raw_sql):
                     column_name = parsed_sql.selectable_columns[table_name][0] # TODO: update hard coded logic on which column to select as PSP
                     psp_statement = " where {table_name}.{column_name} < {{}} ".format(table_name=table_name, column_name=column_name)
                     try:
-                        has_where = True if 'where' in str(parsed_sql.tokens[token_index + 2].value.lower()) else False
-                        if not has_where:
-                            reconstructed_query.append(psp_statement)
+                        if has_where:
+                            token_value = parsed_sql.tokens[token_index].value.lower()
+                            token_value = token_value.replace('where', 'where {table_name}.{column_name} < {{}} and'.format(table_name=table_name, column_name=column_name))
+                            reconstructed_query.append(token_value)
+                        else:
+                            has_where = True if 'where' in str(parsed_sql.tokens[token_index + 2].value.lower()) else False
+                            if not has_where:
+                                reconstructed_query.append(psp_statement)
                     except:
                         reconstructed_query.append(psp_statement)
 
             else:
-                reconstructed_query.append(token.value) 
+                contains_parenthetic_stmt = False
+                query = token.value
+                for item in list(__parenthetic_contents(token.value)):
+                    if 'select' in item[1].lower():
+                        contains_parenthetic_stmt = True
+                        x = sql_to_template(item[1])
+                        query = query.replace(item[1], x)
+                if contains_parenthetic_stmt:
+                    reconstructed_query.append(query)
+                else:
+                    reconstructed_query.append(token.value) 
 
         else:
             reconstructed_query.append(token.value) 
