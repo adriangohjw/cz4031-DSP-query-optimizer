@@ -14,6 +14,7 @@ class ColumnSelector:
             self.__filter_datatype()
             self.__filter_permissible_string()
             self.__parse_column_pairs()
+            self.__filter_foreign_keys()
             self.__store_attributes_in_file()
         return self.attributes
 
@@ -73,6 +74,32 @@ class ColumnSelector:
             result_list.append(item)
 
         self.attributes = result_list
+
+
+    def __filter_foreign_keys(self):
+        query = """
+            SELECT
+                kcu.column_name
+            FROM 
+                information_schema.table_constraints AS tc 
+                JOIN information_schema.key_column_usage AS kcu
+                ON tc.constraint_name = kcu.constraint_name
+                AND tc.table_schema = kcu.table_schema
+                JOIN information_schema.constraint_column_usage AS ccu
+                ON ccu.constraint_name = tc.constraint_name
+                AND ccu.table_schema = tc.table_schema
+            WHERE tc.constraint_type = 'FOREIGN KEY' AND tc.table_name='{table_name}';
+        """.format(table_name=self.table_name)
+        
+        connection = database.DBConnection()
+        result = connection.execute(query)
+        connection.close()
+
+        foreign_keys = []
+        for column_name in result:
+            foreign_keys.append(column_name[0])
+            
+        self.attributes = [item for item in self.attributes if item not in foreign_keys]
 
 
     def __parse_column_pairs(self):
