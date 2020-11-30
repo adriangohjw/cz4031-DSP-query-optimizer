@@ -39,7 +39,7 @@ def sql_to_template(raw_sql):
                 
                 if not where_contains_parenthetic_stmt and table_name in list(parsed_sql.selectable_columns.keys()):
                     if len(parsed_sql.selectable_columns[table_name]) != 0: # only add PSP if there's selectable
-                        column_name = parsed_sql.selectable_columns[table_name][0] # TODO: update hard coded logic on which column to select as PSP
+                        column_name = parsed_sql.selectable_columns[table_name][-1]
 
                         token_value = token.value
                         if 'select' in token.value.lower() and str(token.ttype) != "Token.Keyword.DML":
@@ -85,7 +85,7 @@ def sql_to_template(raw_sql):
                 table_name = table_names[0]
 
                 if len(parsed_sql.selectable_columns[table_name]) != 0: # only add PSP if there's selectable
-                    column_name = parsed_sql.selectable_columns[table_name][0] # TODO: update hard coded logic on which column to select as PSP
+                    column_name = parsed_sql.selectable_columns[table_name][-1]
                     psp_statement = " where {table_name}.{column_name} < {{}} ".format(table_name=table_name, column_name=column_name)
                     try:
                         if has_where:
