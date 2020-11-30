@@ -1,10 +1,6 @@
 # cz4031-DSP-query-optimizer
 NTU Computer Science - CZ4031 Database System Principles (Project 2: Query Optimizer)
 
-## Setting up evironment using Docker image
-
-@abhi to add in instructions
-
 ## Setting up evironment from scratch
 
 ### Setup virtual environment in project
@@ -39,6 +35,6 @@ Run the command `python setup.py` in the console. This will start the generation
 Once the requirements have been added, you can run the streamlit app by
 `streamlit run app.py`
 
-## Docker
+## Setting up environment using Docker
 Alternatively you can build and run a docker image from the Dockerfile given in this repo. 
 For more information on hwo to build and run images locally, you can follow this [link](https://docs.docker.com/get-started/part2/).
