@@ -23,7 +23,7 @@ def sql_to_template(raw_sql):
                 backward_count_to_from = 1
                 is_tables_found = False
                 while not is_tables_found:
-                    if 'from' in parsed_sql.tokens[token_index - backward_count_to_from].value.lower():
+                    if 'from' == parsed_sql.tokens[token_index - backward_count_to_from].value.lower():
                         break
                     backward_count_to_from += 1
                 table_names = parsed_sql.tokens[token_index - (backward_count_to_from - 2)].value.replace(' ','').split(',')
