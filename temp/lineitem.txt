@@ -1,0 +1,8 @@
+l_linenumber
+l_returnflag
+l_linestatus
+l_shipdate
+l_commitdate
+l_receiptdate
+l_shipinstruct
+l_shipmode
